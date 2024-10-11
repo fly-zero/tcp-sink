@@ -1,0 +1,3 @@
+[submodule "external/libflyzero"]
+	path = external/libflyzero
+	url = git@github.com:fly-zero/libflyzero.git
