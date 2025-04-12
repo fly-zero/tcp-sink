@@ -6,6 +6,11 @@
 #include "tcp_sink_server.h"
 
 int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: tcp_sink_server [ip:]<port>" << std::endl;
+        return 1;
+    }
+
     try {
         flyzero::event_dispatch dispatch;
         tcp_sink_server         server{dispatch, argv[1]};
