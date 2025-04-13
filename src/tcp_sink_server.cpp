@@ -94,5 +94,6 @@ inline void tcp_sink_server::close_nonactive_connection() {
 }
 
 inline void tcp_sink_server::cleanup_closing_list() {
-    closing_list_.clear_and_dispose([](tcp_sink_connection *conn) { delete conn; });
+    closing_list_.clear_and_dispose(
+        [this](tcp_sink_connection *conn) { on_del_connection_(conn); });
 }

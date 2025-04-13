@@ -19,9 +19,9 @@ static tcp_sink_connection *on_new_tcp_sink_connection(tcp_sink_server          
         server, std::move(sock), in_addr.sin_addr.s_addr, in_addr.sin_port};
 }
 
-static void on_del_tcp_sink_connection(tcp_sink_server &server, tcp_sink_connection &conn) {
-    syslog(LOG_INFO, "Close connection: %s:%d", inet_ntoa(conn.get_ip()), ntohs(conn.get_port()));
-    server.close(conn);
+static void on_del_tcp_sink_connection(tcp_sink_connection *conn) {
+    syslog(LOG_INFO, "Close connection: %s:%d", inet_ntoa(conn->get_ip()), ntohs(conn->get_port()));
+    delete conn;
 }
 
 int main(int argc, char *argv[]) {

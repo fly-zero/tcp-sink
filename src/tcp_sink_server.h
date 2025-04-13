@@ -24,7 +24,7 @@ class tcp_sink_server final : public flyzero::tcp_server,
                                                        const sockaddr_storage &,
                                                        socklen_t);
 
-    using on_del_connection = void (*)(tcp_sink_server &, tcp_sink_connection &);
+    using on_del_connection = void (*)(tcp_sink_connection *);
 
 public:
     /**
