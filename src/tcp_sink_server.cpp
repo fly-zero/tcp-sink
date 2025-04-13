@@ -31,15 +31,39 @@ inline std::pair<in_addr_t, in_port_t> split_addr(const char *addr) {
     return {ip, port};
 }
 
-tcp_sink_server::tcp_sink_server(flyzero::event_dispatch &dispatcher, const char *addr)
-    : tcp_sink_server{dispatcher, split_addr(addr).first, split_addr(addr).second} {}
+tcp_sink_server::tcp_sink_server(flyzero::event_dispatch &dispatcher,
+                                 const char              *addr,
+                                 on_new_connection        new_conn_cb,
+                                 on_del_connection        del_conn_cb)
+    : tcp_sink_server{
+          dispatcher, split_addr(addr).first, split_addr(addr).second, new_conn_cb, del_conn_cb} {}
+
+tcp_sink_server::tcp_sink_server(flyzero::event_dispatch &dispatcher,
+                                 in_addr_t                ip,
+                                 uint16_t                 port,
+                                 on_new_connection        new_conn_cb,
+                                 on_del_connection        del_conn_cb)
+    : tcp_server{listen(ip, port)},
+      loop_listener{},
+      dispatcher_{dispatcher},
+      on_new_connection_{new_conn_cb},
+      on_del_connection_{del_conn_cb} {
+    if (!on_new_connection_) {
+        throw std::invalid_argument{"Invalid new connection callback"};
+    }
+
+    if (!on_del_connection_) {
+        throw std::invalid_argument{"Invalid delete connection callback"};
+    }
+
+    dispatcher_.register_loop_listener(*this);
+    dispatcher_.register_io_listener(*this, flyzero::event_dispatch::event::read);
+}
 
 void tcp_sink_server::on_accept(flyzero::file_descriptor &&sock,
                                 const sockaddr_storage    &addr,
                                 socklen_t                  addrlen) {
-    (void)addr;
-    (void)addrlen;
-    auto const conn = new tcp_sink_connection(*this, std::move(sock));
+    auto const conn = on_new_connection_(*this, std::move(sock), addr, addrlen);
     auto const now  = std::chrono::steady_clock::now();
     conn->set_deadline(now + timeout_);
     dispatcher_.register_io_listener(*conn, flyzero::event_dispatch::event::read);

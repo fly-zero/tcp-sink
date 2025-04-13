@@ -19,14 +19,26 @@ class tcp_sink_server final : public flyzero::tcp_server,
                                                              tcp_sink_connection::list_hook,
                                                              &tcp_sink_connection::list_hook_> >;
 
+    using on_new_connection = tcp_sink_connection *(*)(tcp_sink_server &,
+                                                       flyzero::file_descriptor &&,
+                                                       const sockaddr_storage &,
+                                                       socklen_t);
+
+    using on_del_connection = void (*)(tcp_sink_server &, tcp_sink_connection &);
+
 public:
     /**
      * @brief 构造函数
      *
      * @param dispatcher 事件分发器
      * @param addr 监听地址，格式为 "ip:port"
+     * @param new_conn_cb 新连接回调函数
+     * @param del_conn_cb 删除连接回调函数
      */
-    tcp_sink_server(flyzero::event_dispatch &dispatcher, const char *addr);
+    tcp_sink_server(flyzero::event_dispatch &dispatcher,
+                    const char              *addr,
+                    on_new_connection        new_conn_cb,
+                    on_del_connection        del_conn_cb);
 
     /**
      * @brief 构造函数
@@ -34,8 +46,14 @@ public:
      * @param dispatcher 事件分发器
      * @param ip 监听 IP 地址
      * @param port 监听端口
+     * @param new_conn_cb 新连接回调函数
+     * @param del_conn_cb 删除连接回调函数
      */
-    tcp_sink_server(flyzero::event_dispatch &dispatcher, in_addr_t ip, uint16_t port);
+    tcp_sink_server(flyzero::event_dispatch &dispatcher,
+                    in_addr_t                ip,
+                    uint16_t                 port,
+                    on_new_connection        new_conn_cb,
+                    on_del_connection        del_conn_cb);
 
     /**
      * @brief 禁止拷贝 & 移动
@@ -85,19 +103,13 @@ protected:
     void cleanup_closing_list();
 
 private:
-    flyzero::event_dispatch   &dispatcher_;      ///< 事件分发器
-    connection_list            active_list_{};   ///< 活动连接列表
-    connection_list            closing_list_{};  ///< 关闭连接列表
-    const std::chrono::minutes timeout_{5};      ///< 超时时间
+    flyzero::event_dispatch   &dispatcher_;                  ///< 事件分发器
+    on_new_connection          on_new_connection_{nullptr};  ///< 新连接回调函数
+    on_del_connection          on_del_connection_{nullptr};  ///< 删除连接回调函数
+    connection_list            active_list_{};               ///< 活动连接列表
+    connection_list            closing_list_{};              ///< 关闭连接列表
+    const std::chrono::minutes timeout_{5};                  ///< 超时时间
 };
-
-inline tcp_sink_server::tcp_sink_server(flyzero::event_dispatch &dispatcher,
-                                        in_addr_t                ip,
-                                        uint16_t                 port)
-    : tcp_server{listen(ip, port)}, loop_listener{}, dispatcher_{dispatcher} {
-    dispatcher_.register_loop_listener(*this);
-    dispatcher_.register_io_listener(*this, flyzero::event_dispatch::event::read);
-}
 
 inline void tcp_sink_server::close(tcp_sink_connection &conn) {
     auto const it = active_list_.iterator_to(conn);

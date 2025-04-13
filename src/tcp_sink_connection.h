@@ -1,5 +1,7 @@
 #pragma once
 
+#include <netinet/in.h>
+
 #include <chrono>
 
 #include <boost/intrusive/list_hook.hpp>
@@ -20,8 +22,13 @@ public:
      *
      * @param server 服务器实例
      * @param fd 套接字
+     * @param ip IP 地址
+     * @param port 端口号
      */
-    tcp_sink_connection(tcp_sink_server &server, flyzero::file_descriptor &&fd);
+    tcp_sink_connection(tcp_sink_server           &server,
+                        flyzero::file_descriptor &&fd,
+                        in_addr_t                  ip,
+                        in_port_t                  port);
 
     /**
      * @brief 禁止拷贝 & 移动
@@ -48,7 +55,21 @@ public:
      *
      * @return 超时时间
      */
-    [[nodiscard]] time_point get_deadline() const;
+    time_point get_deadline() const;
+
+    /**
+     * @brief 获取 IP 地址
+     *
+     * @return IP 地址
+     */
+    in_addr get_ip() const { return ip_; }
+
+    /**
+     * @brief 获取端口号
+     *
+     * @return 端口号
+     */
+    in_port_t get_port() const { return port_; }
 
 protected:
     /**
@@ -74,14 +95,19 @@ protected:
      */
     void on_close() override;
 
+private:
     tcp_sink_server &server_;       ///< 服务器实例
     list_hook        list_hook_{};  ///< 链表钩子
     time_point       deadline_{};   ///< 超时时间
+    in_addr          ip_{};         ///< IP 地址
+    in_port_t        port_{};       ///< 端口号
 };
 
 inline tcp_sink_connection::tcp_sink_connection(tcp_sink_server           &server,
-                                                flyzero::file_descriptor &&fd)
-    : tcp_connection{std::move(fd), 4096, 0}, server_{server} {}
+                                                flyzero::file_descriptor &&fd,
+                                                in_addr_t                  ip,
+                                                in_port_t                  port)
+    : tcp_connection{std::move(fd), 4096, 0}, server_{server}, ip_{ip}, port_{port} {}
 
 inline void tcp_sink_connection::set_deadline(time_point deadline) { deadline_ = deadline; }
 
