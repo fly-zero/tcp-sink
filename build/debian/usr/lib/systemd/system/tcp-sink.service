@@ -1,0 +1,17 @@
+[Unit]
+Description=TCP Sink Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/tcp-sink 0.0.0.0:7788
+Restart=on-failure
+User=nobody
+Group=nogroup
+WorkingDirectory=/
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=tcp-sink
+
+[Install]
+WantedBy=multi-user.target

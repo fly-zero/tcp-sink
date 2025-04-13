@@ -1,0 +1,8 @@
+Package: tcp-sink
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Maintainer: fly.zero@foxmail.com
+Description: TCP Sink Server
+ A lightweight TCP sink server for handling connections.

@@ -19,3 +19,12 @@ add_executable(tcp-sink src/main.cpp src/tcp_sink_connection.cpp src/tcp_sink_se
 
 # add the target library
 target_link_libraries(tcp-sink PRIVATE flyzero)
+
+# add debian package building
+add_custom_target(debian
+    COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/debian/usr/bin
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/tcp-sink ${CMAKE_CURRENT_BINARY_DIR}/debian/usr/bin
+    COMMAND dpkg-deb --build debian
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS tcp-sink
+    COMMENT "Building Debian package")

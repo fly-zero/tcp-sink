@@ -14,6 +14,7 @@
     "editor.formatOnType": true,
     "cSpell.words": [
         "tcp_sink",
-        "libflyzero"
+        "libflyzero",
+        "dpkg"
     ]
 }
