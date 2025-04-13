@@ -26,22 +26,22 @@ static void on_del_tcp_sink_connection(tcp_sink_server &server, tcp_sink_connect
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: tcp_sink_server [ip:]<port>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " [ip:]<port>" << std::endl;
         return 1;
     }
 
     // Open syslog for logging
-    openlog("tcp_sink_server", LOG_PID | LOG_CONS, LOG_USER);
-    syslog(LOG_INFO, "tcp_sink_server started with argument: %s", argv[1]);
+    openlog("tcp-sink", LOG_PID | LOG_CONS, LOG_USER);
+    syslog(LOG_INFO, "tcp-sink started with argument: %s", argv[1]);
 
     try {
         flyzero::event_dispatch dispatch;
         tcp_sink_server         server{
             dispatch, argv[1], on_new_tcp_sink_connection, on_del_tcp_sink_connection};
-        syslog(LOG_INFO, "tcp_sink_server listening on %s", argv[1]);
+        syslog(LOG_INFO, "tcp-sink listening on %s", argv[1]);
         dispatch.run_loop(std::chrono::milliseconds{100});
     } catch (const std::invalid_argument &e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        syslog(LOG_ERR, "%s", e.what());
         return 1;
     }
 
