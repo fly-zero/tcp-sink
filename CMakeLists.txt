@@ -24,7 +24,7 @@ target_link_libraries(tcp-sink PRIVATE flyzero)
 add_custom_target(debian
     COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/debian/usr/bin
     COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/tcp-sink ${CMAKE_CURRENT_BINARY_DIR}/debian/usr/bin
-    COMMAND dpkg-deb --build debian
+    COMMAND dpkg-deb --build debian tcp-sink_v1.0.0_${CMAKE_SYSTEM_PROCESSOR}.deb
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     DEPENDS tcp-sink
     COMMENT "Building Debian package")
