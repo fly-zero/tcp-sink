@@ -1,5 +1,7 @@
 #include "tcp_sink_server.h"
 
+#include <cstring>
+
 #include <event_dispatch.h>
 #include <utility.h>
 #include <stdexcept>
@@ -13,8 +15,11 @@ inline std::pair<in_addr_t, in_port_t> split_addr(const char *addr) {
     auto const [ip_str, port_str] = flyzero::utility::split(addr, ':');
     if (ip_str.empty()) {  // 支持 ":port" 的格式
         ip = INADDR_ANY;
-    } else if (inet_pton(AF_INET, ip_str.data(), &ip) != 1) {
-        throw std::invalid_argument{"Invalid IP address"};
+    } else {
+        auto const tmp = strndupa(ip_str.data(), ip_str.size());
+        if (inet_pton(AF_INET, tmp, &ip) != 1) {
+            throw std::invalid_argument{"Invalid IP address"};
+        }
     }
 
     if (port_str.empty()) {

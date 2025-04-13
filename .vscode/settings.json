@@ -15,6 +15,7 @@
     "cSpell.words": [
         "tcp_sink",
         "libflyzero",
-        "dpkg"
+        "dpkg",
+        "strndupa"
     ]
 }
